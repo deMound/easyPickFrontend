@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { isFullChecker, useHeroesStore } from "../../App";
 import LoadingButton from "@mui/lab/LoadingButton";
 import {
-  Button,
   FormControl,
   MenuItem,
   Select,
@@ -74,7 +73,7 @@ const Header = () => {
   const handleChangeSide = (
     event: SelectChangeEvent<"Radiant" | "Dire" | "both sides">
   ) => {
-    setSide(event.target.value);
+    setSide(event.target.value as "Radiant" | "Dire" | "both sides");
   };
 
   const handleChangeRole = (
@@ -82,7 +81,14 @@ const Header = () => {
       "Carry" | "Midlaner" | "Offlaner" | "SemiSupport" | "FullSupport"
     >
   ) => {
-    setRole(event.target.value);
+    setRole(
+      event.target.value as
+        | "Carry"
+        | "Midlaner"
+        | "Offlaner"
+        | "SemiSupport"
+        | "FullSupport"
+    );
   };
   return (
     <div className="flex flex-col items-center">

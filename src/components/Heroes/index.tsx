@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { HEROES } from "../../heroes";
 import { useHeroesStore } from "../../App";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 function Heroes({ search }: { search: string }) {
   const radiantHeroes = useHeroesStore((state) => state.radiant);

@@ -2,7 +2,7 @@ import "./App.css";
 import Header from "./components/Header";
 import { create } from "zustand";
 import Heroes from "./components/Heroes/index.tsx";
-import { InputAdornment, TextField, styled } from "@mui/material";
+import { InputAdornment, TextField } from "@mui/material";
 import { ChangeEventHandler, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import Reccomendation from "./components/Reccomendation";
