@@ -23,6 +23,49 @@ const startBans = getFromLocalStorage("bans", isArrayOfNumber);
 const fullRadiant = startRadiant ? isFullChecker(startRadiant) : false;
 const fullDire = startDire ? isFullChecker(startDire) : false;
 
+export const MOCK_HEROES = {
+  radiantPicks: [
+    {
+      heroeId: 1,
+    },
+    {
+      heroeId: 2,
+    },
+  ],
+  direPicks: [
+    {
+      heroeId: 10,
+    },
+    {
+      heroeId: 11,
+    },
+    {
+      heroeId: 12,
+    },
+    {
+      heroeId: 13,
+    },
+    {
+      heroeId: 10,
+    },
+    {
+      heroeId: 11,
+    },
+    {
+      heroeId: 12,
+    },
+    {
+      heroeId: 13,
+    },
+  ],
+};
+
+export type TReccomendation = {
+  radiantPicks: { heroId: number }[];
+  direPicks: { heroId: number }[];
+  side: "Dire" | "Radiant" | "both sides";
+};
+
 type THeroes = {
   isLoading: boolean;
   isError: boolean;
@@ -32,6 +75,8 @@ type THeroes = {
   dire: (number | null)[];
   bans: number[];
   reccomendationPage: boolean;
+  reccomendedHeroes: TReccomendation;
+  setReccommendedHeroes: (heroes: TReccomendation) => void;
   setError: (err: boolean) => void;
   setSide: (side: TSides) => void;
   setHeroe: (id: number, type: "radiant" | "dire") => void;
@@ -44,6 +89,10 @@ type THeroes = {
 };
 
 export const useHeroesStore = create<THeroes>((set) => ({
+  reccomendedHeroes: { direPicks: [], radiantPicks: [], side: "both sides" },
+  setReccommendedHeroes: (heroes) => {
+    set(() => ({ reccomendedHeroes: heroes }));
+  },
   side: fullRadiant
     ? fullDire
       ? null
@@ -80,6 +129,8 @@ export const useHeroesStore = create<THeroes>((set) => ({
       radiant: [null, null, null, null, null],
       dire: [null, null, null, null, null],
       bans: [],
+      side: "both sides",
+      allSides: [...SIDES],
     }));
     localStorage.clear();
   },

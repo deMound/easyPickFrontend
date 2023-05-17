@@ -2,6 +2,7 @@ import { useState } from "react";
 import { isFullChecker, useHeroesStore } from "../../App";
 import LoadingButton from "@mui/lab/LoadingButton";
 import {
+  Button,
   FormControl,
   MenuItem,
   Select,
@@ -33,6 +34,7 @@ const Header = () => {
     setSide,
     allSides,
     setError,
+    setReccommendedHeroes,
   ] = useHeroesStore((state) => [
     state.radiant,
     state.dire,
@@ -46,14 +48,19 @@ const Header = () => {
     state.setSide,
     state.allSides,
     state.setError,
+    state.setReccommendedHeroes,
   ]);
 
   const handleRecommend = async () => {
     setLoading(true);
     setReccomendationPage(true);
     try {
-      await fetch("http://localhost:5000/api/Prediction", {
+      const result = await fetch("http://localhost:5000/api/Prediction", {
         method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           radiantPicks: radiant
             .filter((item) => item !== null)
@@ -64,6 +71,23 @@ const Header = () => {
           bans: bans.map((item) => ({ heroId: item })),
         }),
       });
+
+      const UUID = await result.json();
+
+      const result2 = await fetch(
+        `http://localhost:5000/api/Prediction/?id=${UUID}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const heroes = await result2.json();
+      heroes.side = side;
+      setLoading(false);
+      setReccommendedHeroes(heroes);
     } catch (err) {
       setLoading(false);
       setError(true);
@@ -130,17 +154,30 @@ const Header = () => {
         ))}
       </div>
       <div className="relative mt-[22px]">
-        <LoadingButton
-          variant="contained"
-          onClick={handleRecommend}
-          loading={isLoading}
-          disabled={
-            (isFullChecker(radiant) && isFullChecker(dire)) ||
-            reccomendationPage
-          }
-        >
-          Recommend
-        </LoadingButton>
+        {!reccomendationPage || (reccomendationPage && isLoading) ? (
+          <LoadingButton
+            variant="contained"
+            onClick={handleRecommend}
+            loading={isLoading}
+            disabled={
+              (isFullChecker(radiant) && isFullChecker(dire)) ||
+              reccomendationPage
+            }
+          >
+            Recommend
+          </LoadingButton>
+        ) : (
+          <Button
+            variant={"outlined"}
+            className="w-[130px]"
+            onClick={() => {
+              setReccomendationPage(false);
+            }}
+          >
+            To main
+          </Button>
+        )}
+
         {!reccomendationPage && (
           <div className="absolute -right-[320px] top-[4px] flex gap-[12px] items-baseline w-[300px]">
             <span className="text-[gray]">for</span>
