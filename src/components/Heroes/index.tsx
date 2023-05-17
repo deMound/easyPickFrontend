@@ -104,7 +104,7 @@ const Heroe = ({
         <img
           height={45}
           width={70}
-          src={"heroes/" + heroe.img}
+          src={"heroes/small" + heroe.img}
           alt={heroe.localized_name}
         />
         <div
@@ -155,7 +155,7 @@ const Heroe = ({
       <img
         height={45}
         width={70}
-        src={"heroes/" + heroe.img}
+        src={"heroes/small/" + heroe.img}
         alt={heroe.localized_name}
         className="cursor-pointer hover:scale-125"
       />

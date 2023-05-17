@@ -94,6 +94,18 @@ const Header = () => {
     }
   };
 
+  const checkReccIsAllowed = () => {
+    if (
+      (radiant.filter((item) => item !== null).length === 5 &&
+        dire.filter((item) => item !== null).length === 4) ||
+      (radiant.filter((item) => item !== null).length === 4 &&
+        dire.filter((item) => item !== null).length === 5)
+    ) {
+      return false;
+    }
+    return true;
+  };
+
   const handleChangeSide = (
     event: SelectChangeEvent<"Radiant" | "Dire" | "both sides">
   ) => {
@@ -126,7 +138,7 @@ const Header = () => {
               ))}
             </div>
           </div>
-          <div className="flex flex-col items-center gap-[4px]">
+          <div className="flex flex-col items-center gap-[4px] relative">
             <button
               className="p-[4px] bg-[#1F1F1F]"
               onClick={() => {
@@ -137,6 +149,11 @@ const Header = () => {
               <img src={"/refresh.svg"} className="w-[24px] h-[24px]" />
             </button>
             <span className="text-[24px]">VS</span>
+            <span className="absolute -bottom-[30px] text-[#2E2E2E]">
+              {dire.filter((item) => item !== null).length +
+                radiant.filter((item) => item !== null).length}
+              /9
+            </span>
           </div>
           <div className="flex flex-col gap-[10px] items-center">
             <h2 className="text-[#d32f2f]">Dire</h2>
@@ -161,7 +178,7 @@ const Header = () => {
             loading={isLoading}
             disabled={
               (isFullChecker(radiant) && isFullChecker(dire)) ||
-              reccomendationPage
+              checkReccIsAllowed()
             }
           >
             Recommend
@@ -267,7 +284,9 @@ const HeroeItem = ({
           side === "ban" && "w-[60px] h-[35px] border-[#d32f2f] border-[2px]"
         }`}
       >
-        <img src={"heroes/" + HEROES.find((item) => item.id === id)?.img} />
+        <img
+          src={"heroes/small/" + HEROES.find((item) => item.id === id)?.img}
+        />
       </div>
       {side !== "ban" && (
         <span className="absolute top-[45px] text-center w-full">

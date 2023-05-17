@@ -1,6 +1,4 @@
-import fs from "fs";
-
-const HEROES = [
+export const HEROES = [
   {
     id: 1,
     name: "npc_dota_hero_antimage",
@@ -9,7 +7,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape", "Nuker"],
     legs: 2,
-    img: "antimage_lg.png",
+    img: "antimage_sb.png",
   },
   {
     id: 2,
@@ -19,7 +17,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Durable", "Disabler", "Carry"],
     legs: 2,
-    img: "axe_lg.png",
+    img: "axe_sb.png",
   },
   {
     id: 3,
@@ -29,7 +27,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Disabler", "Nuker", "Durable"],
     legs: 4,
-    img: "bane_lg.png",
+    img: "bane_sb.png",
   },
   {
     id: 4,
@@ -39,7 +37,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Disabler", "Nuker", "Initiator"],
     legs: 2,
-    img: "bloodseeker_lg.png",
+    img: "bloodseeker_sb.png",
   },
   {
     id: 5,
@@ -49,7 +47,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Disabler", "Nuker"],
     legs: 2,
-    img: "crystal_maiden_lg.png",
+    img: "crystal_maiden_sb.png",
   },
   {
     id: 6,
@@ -59,7 +57,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Disabler", "Pusher"],
     legs: 2,
-    img: "drow_ranger_lg.png",
+    img: "drow_ranger_sb.png",
   },
   {
     id: 7,
@@ -69,7 +67,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Support", "Initiator", "Disabler", "Nuker"],
     legs: 2,
-    img: "earthshaker_lg.png",
+    img: "earthshaker_sb.png",
   },
   {
     id: 8,
@@ -79,7 +77,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Pusher", "Escape"],
     legs: 2,
-    img: "juggernaut_lg.png",
+    img: "juggernaut_sb.png",
   },
   {
     id: 9,
@@ -89,7 +87,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Support", "Escape", "Nuker", "Disabler"],
     legs: 2,
-    img: "mirana_lg.png",
+    img: "mirana_sb.png",
   },
   {
     id: 10,
@@ -99,7 +97,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Escape", "Durable", "Nuker", "Disabler"],
     legs: 0,
-    img: "morphling_lg.png",
+    img: "morphling_sb.png",
   },
   {
     id: 11,
@@ -109,7 +107,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker"],
     legs: 0,
-    img: "nevermore_lg.png",
+    img: "nevermore_sb.png",
   },
   {
     id: 12,
@@ -119,7 +117,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape", "Pusher", "Nuker"],
     legs: 2,
-    img: "phantom_lancer_lg.png",
+    img: "phantom_lancer_sb.png",
   },
   {
     id: 13,
@@ -129,7 +127,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Initiator", "Disabler", "Escape", "Nuker"],
     legs: 2,
-    img: "puck_lg.png",
+    img: "puck_sb.png",
   },
   {
     id: 14,
@@ -139,7 +137,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Disabler", "Initiator", "Durable", "Nuker"],
     legs: 2,
-    img: "pudge_lg.png",
+    img: "pudge_sb.png",
   },
   {
     id: 15,
@@ -149,7 +147,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Durable", "Nuker", "Pusher"],
     legs: 0,
-    img: "razor_lg.png",
+    img: "razor_sb.png",
   },
   {
     id: 16,
@@ -159,7 +157,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Disabler", "Support", "Nuker", "Escape"],
     legs: 6,
-    img: "sand_king_lg.png",
+    img: "sand_king_sb.png",
   },
   {
     id: 17,
@@ -169,7 +167,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Escape", "Nuker", "Initiator", "Disabler"],
     legs: 2,
-    img: "storm_spirit_lg.png",
+    img: "storm_spirit_sb.png",
   },
   {
     id: 18,
@@ -179,7 +177,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Disabler", "Initiator", "Durable", "Nuker"],
     legs: 2,
-    img: "sven_lg.png",
+    img: "sven_sb.png",
   },
   {
     id: 19,
@@ -189,7 +187,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Nuker", "Pusher", "Initiator", "Durable", "Disabler"],
     legs: 2,
-    img: "tiny_lg.png",
+    img: "tiny_sb.png",
   },
   {
     id: 20,
@@ -199,7 +197,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Initiator", "Disabler", "Nuker", "Escape"],
     legs: 2,
-    img: "vengefulspirit_lg.png",
+    img: "vengefulspirit_sb.png",
   },
   {
     id: 21,
@@ -209,7 +207,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Support", "Disabler", "Escape", "Nuker"],
     legs: 2,
-    img: "windrunner_lg.png",
+    img: "windrunner_sb.png",
   },
   {
     id: 22,
@@ -219,7 +217,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Nuker", "Carry"],
     legs: 2,
-    img: "zuus_lg.png",
+    img: "zuus_sb.png",
   },
   {
     id: 23,
@@ -229,7 +227,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Support", "Disabler", "Initiator", "Durable", "Nuker"],
     legs: 2,
-    img: "kunkka_lg.png",
+    img: "kunkka_sb.png",
   },
   {
     id: 25,
@@ -239,7 +237,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Carry", "Nuker", "Disabler"],
     legs: 2,
-    img: "lina_lg.png",
+    img: "lina_sb.png",
   },
   {
     id: 26,
@@ -249,7 +247,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Disabler", "Nuker", "Initiator"],
     legs: 2,
-    img: "lion_lg.png",
+    img: "lion_sb.png",
   },
   {
     id: 27,
@@ -259,7 +257,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Pusher", "Disabler", "Nuker", "Initiator"],
     legs: 2,
-    img: "shadow_shaman_lg.png",
+    img: "shadow_shaman_sb.png",
   },
   {
     id: 28,
@@ -269,7 +267,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Durable", "Initiator", "Disabler", "Escape"],
     legs: 0,
-    img: "slardar_lg.png",
+    img: "slardar_sb.png",
   },
   {
     id: 29,
@@ -279,7 +277,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Durable", "Disabler", "Nuker", "Carry"],
     legs: 2,
-    img: "tidehunter_lg.png",
+    img: "tidehunter_sb.png",
   },
   {
     id: 30,
@@ -289,7 +287,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Disabler"],
     legs: 2,
-    img: "witch_doctor_lg.png",
+    img: "witch_doctor_sb.png",
   },
   {
     id: 31,
@@ -299,7 +297,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker"],
     legs: 2,
-    img: "lich_lg.png",
+    img: "lich_sb.png",
   },
   {
     id: 32,
@@ -309,7 +307,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape", "Disabler"],
     legs: 2,
-    img: "riki_lg.png",
+    img: "riki_sb.png",
   },
   {
     id: 33,
@@ -319,7 +317,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Disabler", "Initiator", "Pusher"],
     legs: 0,
-    img: "enigma_lg.png",
+    img: "enigma_sb.png",
   },
   {
     id: 34,
@@ -329,7 +327,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker", "Pusher"],
     legs: 2,
-    img: "tinker_lg.png",
+    img: "tinker_sb.png",
   },
   {
     id: 35,
@@ -339,7 +337,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker"],
     legs: 2,
-    img: "sniper_lg.png",
+    img: "sniper_sb.png",
   },
   {
     id: 36,
@@ -349,7 +347,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker", "Durable", "Disabler"],
     legs: 2,
-    img: "necrolyte_lg.png",
+    img: "necrolyte_sb.png",
   },
   {
     id: 37,
@@ -359,7 +357,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Initiator", "Disabler"],
     legs: 2,
-    img: "warlock_lg.png",
+    img: "warlock_sb.png",
   },
   {
     id: 38,
@@ -369,7 +367,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Disabler", "Durable", "Nuker"],
     legs: 2,
-    img: "beastmaster_lg.png",
+    img: "beastmaster_sb.png",
   },
   {
     id: 39,
@@ -379,7 +377,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker", "Escape"],
     legs: 2,
-    img: "queenofpain_lg.png",
+    img: "queenofpain_sb.png",
   },
   {
     id: 40,
@@ -389,7 +387,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Initiator", "Pusher", "Disabler"],
     legs: 0,
-    img: "venomancer_lg.png",
+    img: "venomancer_sb.png",
   },
   {
     id: 41,
@@ -399,7 +397,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Initiator", "Disabler", "Escape", "Durable"],
     legs: 2,
-    img: "faceless_void_lg.png",
+    img: "faceless_void_sb.png",
   },
   {
     id: 42,
@@ -409,7 +407,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Support", "Durable", "Disabler", "Initiator"],
     legs: 2,
-    img: "skeleton_king_lg.png",
+    img: "skeleton_king_sb.png",
   },
   {
     id: 43,
@@ -419,7 +417,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Pusher", "Nuker", "Disabler"],
     legs: 2,
-    img: "death_prophet_lg.png",
+    img: "death_prophet_sb.png",
   },
   {
     id: 44,
@@ -429,7 +427,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape"],
     legs: 2,
-    img: "phantom_assassin_lg.png",
+    img: "phantom_assassin_sb.png",
   },
   {
     id: 45,
@@ -439,7 +437,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Nuker", "Pusher"],
     legs: 2,
-    img: "pugna_lg.png",
+    img: "pugna_sb.png",
   },
   {
     id: 46,
@@ -449,7 +447,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Escape"],
     legs: 2,
-    img: "templar_assassin_lg.png",
+    img: "templar_assassin_sb.png",
   },
   {
     id: 47,
@@ -459,7 +457,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Durable", "Initiator", "Disabler"],
     legs: 0,
-    img: "viper_lg.png",
+    img: "viper_sb.png",
   },
   {
     id: 48,
@@ -469,7 +467,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker", "Pusher"],
     legs: 2,
-    img: "luna_lg.png",
+    img: "luna_sb.png",
   },
   {
     id: 49,
@@ -479,7 +477,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Pusher", "Durable", "Disabler", "Initiator", "Nuker"],
     legs: 2,
-    img: "dragon_knight_lg.png",
+    img: "dragon_knight_sb.png",
   },
   {
     id: 50,
@@ -489,7 +487,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Disabler"],
     legs: 2,
-    img: "dazzle_lg.png",
+    img: "dazzle_sb.png",
   },
   {
     id: 51,
@@ -499,7 +497,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Disabler", "Durable", "Nuker"],
     legs: 2,
-    img: "rattletrap_lg.png",
+    img: "rattletrap_sb.png",
   },
   {
     id: 52,
@@ -509,7 +507,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Support", "Nuker", "Pusher", "Disabler"],
     legs: 4,
-    img: "leshrac_lg.png",
+    img: "leshrac_sb.png",
   },
   {
     id: 53,
@@ -519,7 +517,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Pusher", "Escape", "Nuker"],
     legs: 2,
-    img: "furion_lg.png",
+    img: "furion_sb.png",
   },
   {
     id: 54,
@@ -529,7 +527,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Durable", "Escape", "Disabler"],
     legs: 2,
-    img: "life_stealer_lg.png",
+    img: "life_stealer_sb.png",
   },
   {
     id: 55,
@@ -539,7 +537,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Escape", "Disabler"],
     legs: 2,
-    img: "dark_seer_lg.png",
+    img: "dark_seer_sb.png",
   },
   {
     id: 56,
@@ -549,7 +547,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Escape", "Pusher"],
     legs: 2,
-    img: "clinkz_lg.png",
+    img: "clinkz_sb.png",
   },
   {
     id: 57,
@@ -559,7 +557,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Support", "Durable", "Nuker"],
     legs: 2,
-    img: "omniknight_lg.png",
+    img: "omniknight_sb.png",
   },
   {
     id: 58,
@@ -569,7 +567,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Pusher", "Durable", "Disabler"],
     legs: 4,
-    img: "enchantress_lg.png",
+    img: "enchantress_sb.png",
   },
   {
     id: 59,
@@ -579,7 +577,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Durable", "Initiator"],
     legs: 2,
-    img: "huskar_lg.png",
+    img: "huskar_sb.png",
   },
   {
     id: 60,
@@ -589,7 +587,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Initiator", "Durable", "Disabler", "Nuker"],
     legs: 2,
-    img: "night_stalker_lg.png",
+    img: "night_stalker_sb.png",
   },
   {
     id: 61,
@@ -599,7 +597,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Pusher", "Escape", "Nuker"],
     legs: 8,
-    img: "broodmother_lg.png",
+    img: "broodmother_sb.png",
   },
   {
     id: 62,
@@ -609,7 +607,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Escape", "Nuker"],
     legs: 2,
-    img: "bounty_hunter_lg.png",
+    img: "bounty_hunter_sb.png",
   },
   {
     id: 63,
@@ -619,7 +617,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Escape"],
     legs: 4,
-    img: "weaver_lg.png",
+    img: "weaver_sb.png",
   },
   {
     id: 64,
@@ -629,7 +627,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Pusher", "Disabler"],
     legs: 2,
-    img: "jakiro_lg.png",
+    img: "jakiro_sb.png",
   },
   {
     id: 65,
@@ -639,7 +637,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Initiator", "Disabler", "Escape"],
     legs: 2,
-    img: "batrider_lg.png",
+    img: "batrider_sb.png",
   },
   {
     id: 66,
@@ -649,7 +647,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Pusher"],
     legs: 2,
-    img: "chen_lg.png",
+    img: "chen_sb.png",
   },
   {
     id: 67,
@@ -659,7 +657,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Durable", "Escape"],
     legs: 0,
-    img: "spectre_lg.png",
+    img: "spectre_sb.png",
   },
   {
     id: 68,
@@ -669,7 +667,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Disabler", "Nuker"],
     legs: 0,
-    img: "ancient_apparition_lg.png",
+    img: "ancient_apparition_sb.png",
   },
   {
     id: 69,
@@ -679,7 +677,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Disabler", "Initiator", "Durable", "Nuker"],
     legs: 2,
-    img: "doom_bringer_lg.png",
+    img: "doom_bringer_sb.png",
   },
   {
     id: 70,
@@ -689,7 +687,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Durable", "Disabler"],
     legs: 2,
-    img: "ursa_lg.png",
+    img: "ursa_sb.png",
   },
   {
     id: 71,
@@ -699,7 +697,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Initiator", "Disabler", "Durable", "Escape"],
     legs: 2,
-    img: "spirit_breaker_lg.png",
+    img: "spirit_breaker_sb.png",
   },
   {
     id: 72,
@@ -709,7 +707,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker", "Disabler"],
     legs: 2,
-    img: "gyrocopter_lg.png",
+    img: "gyrocopter_sb.png",
   },
   {
     id: 73,
@@ -719,7 +717,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Support", "Durable", "Disabler", "Initiator", "Nuker"],
     legs: 2,
-    img: "alchemist_lg.png",
+    img: "alchemist_sb.png",
   },
   {
     id: 74,
@@ -729,7 +727,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker", "Disabler", "Escape", "Pusher"],
     legs: 2,
-    img: "invoker_lg.png",
+    img: "invoker_sb.png",
   },
   {
     id: 75,
@@ -739,7 +737,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Support", "Disabler", "Initiator", "Nuker"],
     legs: 2,
-    img: "silencer_lg.png",
+    img: "silencer_sb.png",
   },
   {
     id: 76,
@@ -749,7 +747,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker", "Disabler"],
     legs: 4,
-    img: "obsidian_destroyer_lg.png",
+    img: "obsidian_destroyer_sb.png",
   },
   {
     id: 77,
@@ -759,7 +757,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Pusher", "Durable", "Escape"],
     legs: 2,
-    img: "lycan_lg.png",
+    img: "lycan_sb.png",
   },
   {
     id: 78,
@@ -769,7 +767,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Initiator", "Durable", "Disabler", "Nuker"],
     legs: 2,
-    img: "brewmaster_lg.png",
+    img: "brewmaster_sb.png",
   },
   {
     id: 79,
@@ -779,7 +777,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Disabler", "Initiator", "Nuker"],
     legs: 2,
-    img: "shadow_demon_lg.png",
+    img: "shadow_demon_sb.png",
   },
   {
     id: 80,
@@ -789,7 +787,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Pusher", "Durable"],
     legs: 2,
-    img: "lone_druid_lg.png",
+    img: "lone_druid_sb.png",
   },
   {
     id: 81,
@@ -799,7 +797,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Disabler", "Durable", "Pusher", "Initiator"],
     legs: 2,
-    img: "chaos_knight_lg.png",
+    img: "chaos_knight_sb.png",
   },
   {
     id: 82,
@@ -809,7 +807,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape", "Nuker", "Disabler", "Initiator", "Pusher"],
     legs: 2,
-    img: "meepo_lg.png",
+    img: "meepo_sb.png",
   },
   {
     id: 83,
@@ -819,7 +817,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Support", "Initiator", "Durable", "Disabler", "Escape"],
     legs: 2,
-    img: "treant_lg.png",
+    img: "treant_sb.png",
   },
   {
     id: 84,
@@ -829,7 +827,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Support", "Nuker", "Disabler", "Durable", "Initiator"],
     legs: 2,
-    img: "ogre_magi_lg.png",
+    img: "ogre_magi_sb.png",
   },
   {
     id: 85,
@@ -839,7 +837,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Support", "Durable", "Disabler", "Nuker"],
     legs: 2,
-    img: "undying_lg.png",
+    img: "undying_sb.png",
   },
   {
     id: 86,
@@ -849,7 +847,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Disabler", "Nuker"],
     legs: 2,
-    img: "rubick_lg.png",
+    img: "rubick_sb.png",
   },
   {
     id: 87,
@@ -859,7 +857,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Disabler", "Nuker", "Initiator"],
     legs: 2,
-    img: "disruptor_lg.png",
+    img: "disruptor_sb.png",
   },
   {
     id: 88,
@@ -869,7 +867,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Disabler", "Nuker", "Initiator", "Escape"],
     legs: 6,
-    img: "nyx_assassin_lg.png",
+    img: "nyx_assassin_sb.png",
   },
   {
     id: 89,
@@ -879,7 +877,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Support", "Pusher", "Disabler", "Initiator", "Escape"],
     legs: 0,
-    img: "naga_siren_lg.png",
+    img: "naga_siren_sb.png",
   },
   {
     id: 90,
@@ -889,7 +887,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Disabler"],
     legs: 2,
-    img: "keeper_of_the_light_lg.png",
+    img: "keeper_of_the_light_sb.png",
   },
   {
     id: 91,
@@ -899,7 +897,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Escape", "Nuker"],
     legs: 0,
-    img: "wisp_lg.png",
+    img: "wisp_sb.png",
   },
   {
     id: 92,
@@ -909,7 +907,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Durable", "Disabler", "Pusher"],
     legs: 2,
-    img: "visage_lg.png",
+    img: "visage_sb.png",
   },
   {
     id: 93,
@@ -919,7 +917,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape", "Disabler", "Nuker"],
     legs: 2,
-    img: "slark_lg.png",
+    img: "slark_sb.png",
   },
   {
     id: 94,
@@ -929,7 +927,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Disabler", "Durable"],
     legs: 0,
-    img: "medusa_lg.png",
+    img: "medusa_sb.png",
   },
   {
     id: 95,
@@ -939,7 +937,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Pusher", "Disabler", "Durable"],
     legs: 2,
-    img: "troll_warlord_lg.png",
+    img: "troll_warlord_sb.png",
   },
   {
     id: 96,
@@ -949,7 +947,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Durable", "Initiator", "Disabler", "Nuker", "Escape"],
     legs: 4,
-    img: "centaur_lg.png",
+    img: "centaur_sb.png",
   },
   {
     id: 97,
@@ -959,7 +957,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Disabler", "Nuker", "Escape"],
     legs: 4,
-    img: "magnataur_lg.png",
+    img: "magnataur_sb.png",
   },
   {
     id: 98,
@@ -969,7 +967,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Nuker", "Durable", "Escape"],
     legs: 2,
-    img: "shredder_lg.png",
+    img: "shredder_sb.png",
   },
   {
     id: 99,
@@ -979,7 +977,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Durable", "Initiator", "Nuker"],
     legs: 2,
-    img: "bristleback_lg.png",
+    img: "bristleback_sb.png",
   },
   {
     id: 100,
@@ -989,7 +987,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Disabler", "Nuker"],
     legs: 2,
-    img: "tusk_lg.png",
+    img: "tusk_sb.png",
   },
   {
     id: 101,
@@ -999,7 +997,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Disabler"],
     legs: 2,
-    img: "skywrath_mage_lg.png",
+    img: "skywrath_mage_sb.png",
   },
   {
     id: 102,
@@ -1009,7 +1007,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Support", "Carry", "Durable"],
     legs: 2,
-    img: "abaddon_lg.png",
+    img: "abaddon_sb.png",
   },
   {
     id: 103,
@@ -1019,7 +1017,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Disabler", "Nuker", "Durable"],
     legs: 2,
-    img: "elder_titan_lg.png",
+    img: "elder_titan_sb.png",
   },
   {
     id: 104,
@@ -1029,7 +1027,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Disabler", "Initiator", "Durable", "Nuker"],
     legs: 2,
-    img: "legion_commander_lg.png",
+    img: "legion_commander_sb.png",
   },
   {
     id: 105,
@@ -1039,7 +1037,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Nuker", "Disabler"],
     legs: 6,
-    img: "techies_lg.png",
+    img: "techies_sb.png",
   },
   {
     id: 106,
@@ -1049,7 +1047,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape", "Nuker", "Disabler", "Initiator"],
     legs: 2,
-    img: "ember_spirit_lg.png",
+    img: "ember_spirit_sb.png",
   },
   {
     id: 107,
@@ -1059,7 +1057,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Nuker", "Escape", "Disabler", "Initiator", "Durable"],
     legs: 2,
-    img: "earth_spirit_lg.png",
+    img: "earth_spirit_sb.png",
   },
   {
     id: 108,
@@ -1069,7 +1067,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Support", "Nuker", "Disabler", "Durable", "Escape"],
     legs: 2,
-    img: "underlord_lg.png",
+    img: "underlord_sb.png",
   },
   {
     id: 109,
@@ -1079,7 +1077,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Pusher", "Nuker"],
     legs: 2,
-    img: "terrorblade_lg.png",
+    img: "terrorblade_sb.png",
   },
   {
     id: 110,
@@ -1089,7 +1087,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Initiator", "Escape", "Disabler"],
     legs: 2,
-    img: "phoenix_lg.png",
+    img: "phoenix_sb.png",
   },
   {
     id: 111,
@@ -1099,7 +1097,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Disabler", "Escape"],
     legs: 0,
-    img: "oracle_lg.png",
+    img: "oracle_sb.png",
   },
   {
     id: 112,
@@ -1109,7 +1107,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Disabler", "Nuker"],
     legs: 2,
-    img: "winter_wyvern_lg.png",
+    img: "winter_wyvern_sb.png",
   },
   {
     id: 113,
@@ -1119,7 +1117,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Escape", "Nuker"],
     legs: 2,
-    img: "arc_warden_lg.png",
+    img: "arc_warden_sb.png",
   },
   {
     id: 114,
@@ -1129,7 +1127,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape", "Disabler", "Initiator"],
     legs: 2,
-    img: "monkey_king_lg.png",
+    img: "monkey_king_sb.png",
   },
   {
     id: 119,
@@ -1139,7 +1137,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Disabler", "Escape"],
     legs: 2,
-    img: "dark_willow_lg.png",
+    img: "dark_willow_sb.png",
   },
   {
     id: 120,
@@ -1149,7 +1147,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Nuker", "Disabler", "Durable", "Escape", "Initiator"],
     legs: 2,
-    img: "pangolier_lg.png",
+    img: "pangolier_sb.png",
   },
   {
     id: 121,
@@ -1159,7 +1157,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Disabler", "Escape"],
     legs: 0,
-    img: "grimstroke_lg.png",
+    img: "grimstroke_sb.png",
   },
   {
     id: 123,
@@ -1169,7 +1167,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Escape", "Disabler"],
     legs: 4,
-    img: "hoodwink_lg.png",
+    img: "hoodwink_sb.png",
   },
   {
     id: 126,
@@ -1179,7 +1177,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Escape", "Nuker", "Disabler"],
     legs: 2,
-    img: "void_spirit_lg.png",
+    img: "void_spirit_sb.png",
   },
   {
     id: 128,
@@ -1189,7 +1187,7 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Support", "Nuker", "Disabler", "Escape"],
     legs: 2,
-    img: "snapfire_lg.png",
+    img: "snapfire_sb.png",
   },
   {
     id: 129,
@@ -1199,7 +1197,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Initiator", "Disabler", "Durable"],
     legs: 2,
-    img: "mars_lg.png",
+    img: "mars_sb.png",
   },
   {
     id: 135,
@@ -1209,7 +1207,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Carry", "Durable"],
     legs: 2,
-    img: "dawnbreaker_lg.png",
+    img: "dawnbreaker_sb.png",
   },
   {
     id: 136,
@@ -1219,7 +1217,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Support", "Carry", "Initiator", "Disabler", "Escape"],
     legs: 2,
-    img: "marci_lg.png",
+    img: "marci_sb.png",
   },
   {
     id: 137,
@@ -1229,7 +1227,7 @@ const HEROES = [
     attack_type: "Melee",
     roles: ["Initiator", "Durable", "Disabler"],
     legs: 2,
-    img: "primal_beast_lg.png",
+    img: "primal_beast_sb.png",
   },
   {
     id: 138,
@@ -1239,22 +1237,6 @@ const HEROES = [
     attack_type: "Ranged",
     roles: ["Carry", "Nuker", "Disabler"],
     legs: 2,
-    img: "muerta_lg.png",
+    img: "muerta_sb.png",
   },
 ];
-
-const insertSvgStrings = () => {
-  const path =
-    "./public/heroesSvg/" +
-    HEROES[0].img.replace(".png", ".svg").replace("\n", "");
-  const data = fs.readFileSync(path);
-  HEROES[0].svg = data.toString();
-};
-
-insertSvgStrings();
-
-fs.writeFile("./heroes3.json", JSON.stringify(HEROES), (err) => {
-  if (err) {
-    console.error(err);
-  }
-});
