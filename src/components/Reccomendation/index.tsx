@@ -32,15 +32,20 @@ function Reccomendation() {
           )
         ) : heroes.side === "both sides" ? (
           <>
-            <RecHeroes side={"Radiant"} heroes={heroes.radiantPicks} />
-            <RecHeroes side={"Dire"} heroes={heroes.direPicks} />
+            <RecHeroes
+              side={"Radiant"}
+              heroes={heroes.recommendedRadiantPicks}
+            />
+            <RecHeroes side={"Dire"} heroes={heroes.recommendedDirePicks} />
           </>
         ) : (
           <>
             <RecHeroes
               side={heroes.side}
               heroes={
-                heroes.side === "Dire" ? heroes.direPicks : heroes.radiantPicks
+                heroes.side === "Dire"
+                  ? heroes.recommendedDirePicks
+                  : heroes.recommendedRadiantPicks
               }
             />
           </>
@@ -70,7 +75,7 @@ const RecHeroes = ({
   heroes,
   side,
 }: {
-  heroes: { heroId: number }[];
+  heroes: { heroId: number; winProbability: number }[];
   side: "Radiant" | "Dire";
 }) => {
   const [radiant, dire, setHeroe, deleteHeroe] = useHeroesStore((store) => [
@@ -107,7 +112,13 @@ const RecHeroes = ({
             <img
               height={45}
               width={70}
-              src={"heroes/" + HEROES.find((item) => item.id === i.heroId)?.img}
+              src={
+                "heroes/" +
+                HEROES.find((item) => item.id === i.heroId)?.img.replace(
+                  "_sb",
+                  "_lg"
+                )
+              }
               alt={HEROES.find((item) => item.id === i.heroId)?.localized_name}
             />
             <span className="ml-[12px] flex-grow">
@@ -134,6 +145,7 @@ const RecHeroes = ({
                 Add
               </Button>
             )}
+            <span className="ml-[10px]">{i.winProbability * 100 + "%"}</span>
           </div>
         ))}
       </div>

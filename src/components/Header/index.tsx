@@ -69,25 +69,37 @@ const Header = () => {
             .filter((item) => item !== null)
             .map((item, i) => ({ heroId: item, order: i })),
           bans: bans.map((item) => ({ heroId: item })),
+          recommendedPosition: role,
         }),
       });
 
       const UUID = await result.json();
+      let interval = 1;
+      const req = async () => {
+        const result2 = await fetch(
+          `http://localhost:5000/api/Prediction/?id=${UUID}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const heroes = await result2.json();
 
-      const result2 = await fetch(
-        `http://localhost:5000/api/Prediction/?id=${UUID}`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
+        if (!heroes.isFinished) {
+          heroes.side = side;
+          heroes.recommendedRadiantPicks = [
+            { heroId: 1, winProbability: 0.33 },
+            { heroId: 2, winProbability: 0.38 },
+          ];
+          setLoading(false);
+          setReccommendedHeroes(heroes);
+          clearInterval(interval);
         }
-      );
-      const heroes = await result2.json();
-      heroes.side = side;
-      setLoading(false);
-      setReccommendedHeroes(heroes);
+      };
+      interval = setInterval(req, 1000);
     } catch (err) {
       setLoading(false);
       setError(true);
@@ -99,11 +111,23 @@ const Header = () => {
       (radiant.filter((item) => item !== null).length === 5 &&
         dire.filter((item) => item !== null).length === 4) ||
       (radiant.filter((item) => item !== null).length === 4 &&
-        dire.filter((item) => item !== null).length === 5)
+        dire.filter((item) => item !== null).length === 5) ||
+      (radiant.filter((item) => item !== null).length === 4 &&
+        dire.filter((item) => item !== null).length === 4)
     ) {
       return false;
     }
     return true;
+  };
+
+  const checkSideIsAllowed = () => {
+    if (
+      radiant.filter((item) => item !== null).length === 4 &&
+      dire.filter((item) => item !== null).length === 4
+    ) {
+      return true;
+    }
+    return false;
   };
 
   const handleChangeSide = (
@@ -149,10 +173,8 @@ const Header = () => {
               <img src={"/refresh.svg"} className="w-[24px] h-[24px]" />
             </button>
             <span className="text-[24px]">VS</span>
-            <span className="absolute -bottom-[30px] text-[#2E2E2E]">
-              {dire.filter((item) => item !== null).length +
-                radiant.filter((item) => item !== null).length}
-              /9
+            <span className="absolute -bottom-[50px] text-[#2E2E2E] text-center">
+              4vs4/5vs4/4vs5 to
             </span>
           </div>
           <div className="flex flex-col gap-[10px] items-center">
@@ -215,26 +237,26 @@ const Header = () => {
                 ))}
               </Select>
             </FormControl>
-            {allSides !== null && side !== null && Array.isArray(allSides) ? (
-              <FormControl variant="standard">
-                <Select
-                  sx={{
-                    color: "gray",
-                    "& .MuiSvgIcon-root": {
-                      fill: "gray",
-                    },
-                  }}
-                  value={side}
-                  onChange={handleChangeSide}
-                >
-                  {allSides.map((side) => (
-                    <MenuItem value={side}>{side}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ) : (
-              side
-            )}
+            {checkSideIsAllowed() &&
+              side !== null &&
+              Array.isArray(allSides) && (
+                <FormControl variant="standard">
+                  <Select
+                    sx={{
+                      color: "gray",
+                      "& .MuiSvgIcon-root": {
+                        fill: "gray",
+                      },
+                    }}
+                    value={side}
+                    onChange={handleChangeSide}
+                  >
+                    {allSides.map((side) => (
+                      <MenuItem value={side}>{side}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
           </div>
         )}
       </div>

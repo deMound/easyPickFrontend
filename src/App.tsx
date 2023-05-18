@@ -61,8 +61,8 @@ export const MOCK_HEROES = {
 };
 
 export type TReccomendation = {
-  radiantPicks: { heroId: number }[];
-  direPicks: { heroId: number }[];
+  recommendedRadiantPicks: { heroId: number; winProbability: number }[];
+  recommendedDirePicks: { heroId: number; winProbability: number }[];
   side: "Dire" | "Radiant" | "both sides";
 };
 
@@ -89,7 +89,7 @@ type THeroes = {
 };
 
 export const useHeroesStore = create<THeroes>((set) => ({
-  reccomendedHeroes: { direPicks: [], radiantPicks: [], side: "both sides" },
+  reccomendedHeroes: { recommendedDirePicks: [], recommendedRadiantPicks: [], side: "both sides" },
   setReccommendedHeroes: (heroes) => {
     set(() => ({ reccomendedHeroes: heroes }));
   },
