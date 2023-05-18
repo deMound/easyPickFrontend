@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { HEROES } from "../../heroes";
 import { useHeroesStore } from "../../App";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 function Heroes({ search }: { search: string }) {
   const radiantHeroes = useHeroesStore((state) => state.radiant);
@@ -89,11 +89,10 @@ const Heroe = ({
 
   if (disabled) {
     return (
-      <img
-        height={45}
-        width={70}
-        src={"heroes/" + heroe.img}
-        alt={heroe.localized_name}
+      <ProgressiveImg
+        name={heroe.localized_name}
+        placeholderSrc={"heroes/small/" + heroe.img}
+        src={"heroes/" + heroe.img.replace("_sb", "_lg")}
         className="opacity-30"
       />
     );
@@ -101,11 +100,10 @@ const Heroe = ({
   if (chosen || ban) {
     return (
       <div className="relative overflow-hidden">
-        <img
-          height={45}
-          width={70}
-          src={"heroes/small" + heroe.img}
-          alt={heroe.localized_name}
+        <ProgressiveImg
+          name={heroe.localized_name}
+          placeholderSrc={"heroes/small/" + heroe.img}
+          src={"heroes/" + heroe.img.replace("_sb", "_lg")}
         />
         <div
           className={`absolute h-[45px] w-[70px] ${
@@ -123,7 +121,7 @@ const Heroe = ({
             <img
               height={35}
               width={57}
-              src={"heroes/" + heroe.img}
+              src={"heroes/small/" + heroe.img}
               alt={heroe.localized_name}
             />
             <span className="text-[16px]">{heroe.localized_name}</span>
@@ -152,14 +150,41 @@ const Heroe = ({
         </>
       }
     >
-      <img
-        height={45}
-        width={70}
-        src={"heroes/small/" + heroe.img}
-        alt={heroe.localized_name}
-        className="cursor-pointer hover:scale-125"
-      />
+      <div>
+        <ProgressiveImg
+          name={heroe.localized_name}
+          placeholderSrc={"heroes/small/" + heroe.img}
+          src={"heroes/" + heroe.img.replace("_sb", "_lg")}
+          className="cursor-pointer hover:scale-125"
+        />
+      </div>
     </CustomTooltip>
+  );
+};
+
+const ProgressiveImg = ({
+  placeholderSrc,
+  src,
+  name,
+  className = "",
+}: {
+  placeholderSrc: string;
+  src: string;
+  name: string;
+  className?: string;
+}) => {
+  const [imgSrc, setImgSrc] = useState(placeholderSrc || src);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      setImgSrc(src);
+    };
+  }, [src]);
+
+  return (
+    <img height={45} width={70} src={imgSrc} alt={name} className={className} />
   );
 };
 

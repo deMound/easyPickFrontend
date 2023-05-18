@@ -285,7 +285,10 @@ const HeroeItem = ({
         }`}
       >
         <img
-          src={"heroes/small/" + HEROES.find((item) => item.id === id)?.img}
+          src={
+            "heroes/" +
+            HEROES.find((item) => item.id === id)?.img.replace("_sb", "_lg")
+          }
         />
       </div>
       {side !== "ban" && (
