@@ -90,10 +90,6 @@ const Header = () => {
 
         if (!heroes.isFinished) {
           heroes.side = side;
-          heroes.recommendedRadiantPicks = [
-            { heroId: 1, winProbability: 0.33 },
-            { heroId: 2, winProbability: 0.38 },
-          ];
           setLoading(false);
           setReccommendedHeroes(heroes);
           clearInterval(interval);
