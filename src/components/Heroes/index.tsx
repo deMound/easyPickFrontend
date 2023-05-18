@@ -176,11 +176,13 @@ const ProgressiveImg = ({
   const [imgSrc, setImgSrc] = useState(placeholderSrc || src);
 
   useEffect(() => {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-      setImgSrc(src);
-    };
+    setTimeout(() => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        setImgSrc(src);
+      };
+    }, 4000);
   }, [src]);
 
   return (
