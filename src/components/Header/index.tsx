@@ -88,7 +88,7 @@ const Header = () => {
         );
         const heroes = await result2.json();
 
-        if (!heroes.isFinished) {
+        if (heroes.isFinished) {
           heroes.side = side;
           setLoading(false);
           setReccommendedHeroes(heroes);
