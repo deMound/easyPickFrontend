@@ -104,12 +104,8 @@ const Header = () => {
 
   const checkReccIsAllowed = () => {
     if (
-      (radiant.filter((item) => item !== null).length === 5 &&
-        dire.filter((item) => item !== null).length === 4) ||
-      (radiant.filter((item) => item !== null).length === 4 &&
-        dire.filter((item) => item !== null).length === 5) ||
-      (radiant.filter((item) => item !== null).length === 4 &&
-        dire.filter((item) => item !== null).length === 4)
+      radiant.filter((item) => item !== null).length === 4 &&
+      dire.filter((item) => item !== null).length === 4
     ) {
       return false;
     }
@@ -170,7 +166,7 @@ const Header = () => {
             </button>
             <span className="text-[24px]">VS</span>
             <span className="absolute -bottom-[50px] text-[#2E2E2E] text-center">
-              4vs4/5vs4/4vs5 to
+              4vs4 to
             </span>
           </div>
           <div className="flex flex-col gap-[10px] items-center">

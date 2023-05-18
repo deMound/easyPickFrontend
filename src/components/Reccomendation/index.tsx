@@ -145,7 +145,9 @@ const RecHeroes = ({
                 Add
               </Button>
             )}
-            <span className="ml-[10px]">{i.winProbability * 100 + "%"}</span>
+            <span className="ml-[10px]">
+              {Math.round(i.winProbability * 100) + "%"}
+            </span>
           </div>
         ))}
       </div>
