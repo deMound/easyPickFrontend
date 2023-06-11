@@ -1,0 +1,386 @@
+---
+title: "Итоговый проект"
+author: "Группа N"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+### Распределение ролей
+
+1.  Исламов Айрат Маратович - разрабатывал модель
+2.  Щёголев Артемий Олегович - разрабатывал модель
+3.  Кадыров Ислам Фанилевич - бэкенд
+4.  Болотова Олеся Романовна - интеграция бэка и модели
+5.  Корнилов Тимур Валерьевич - интерфейс
+
+### Интерфейс
+
+**Входные данные:** 
+Чтобы получить ответ системы пользователь должен выбрать 4 героя для стороны света, 4 героя стороны тьмы и произвольное количество запрещённых персонажей. Также необходимо выбрать будет ли система выдавать ответ для двух сторон либо только для сил света, либо только для сил тьмы.
+
+**Выходные данные:** 
+В качестве выходных данных пользователь получает по 10 рекомендованных героев для тех сторон, которые он выбрал.
+
+**Скрин интерфейса:** 
+![](main) 
+![](rec)
+
+**Код интерфейса:** 
+Здесь будет показан код главных частей интерфейса приложения.
+
+```{js eval = FALSE}
+
+Для храннения и изменения данных был использован глобальный стор Zutand. 
+
+export const useHeroesStore = create<THeroes>((set) => ({
+  reccomendedHeroes: { recommendedDirePicks: [], recommendedRadiantPicks: [], side: "both sides" },
+  setReccommendedHeroes: (heroes) => {
+    set(() => ({ reccomendedHeroes: heroes }));
+  },
+  side: fullRadiant
+    ? fullDire
+      ? null
+      : "Dire"
+    : fullDire
+    ? "Radiant"
+    : "both sides",
+  allSides: fullRadiant
+    ? fullDire
+      ? null
+      : "Dire"
+    : fullDire
+    ? "Radiant"
+    : [...SIDES],
+  setSide: (side) => {
+    set(() => ({ side }));
+  },
+  setError: (err) => {
+    set(() => ({ isError: err }));
+  },
+  isError: false,
+  reccomendationPage: false,
+  setReccomendationPage: (res: boolean) => {
+    set(() => ({ reccomendationPage: res }));
+  },
+  isLoading: false,
+  setLoading: (res: boolean) => {
+    set(() => ({ isLoading: res }));
+  },
+  radiant: startRadiant || [null, null, null, null, null],
+  dire: startDire || [null, null, null, null, null],
+  clearHeroes: () => {
+    set(() => ({
+      radiant: [null, null, null, null, null],
+      dire: [null, null, null, null, null],
+      bans: [],
+      side: "both sides",
+      allSides: [...SIDES],
+    }));
+    localStorage.clear();
+  },
+  bans: startBans || [],
+  deleteFromBans: (id) => {
+    set((state) => {
+      const newBans = state.bans.filter((item) => item !== id);
+      return { bans: newBans };
+    });
+  },
+  addToBan: (id) =>
+    set((state) => {
+      const newBans = [...state.bans];
+      newBans.push(id);
+      return { bans: newBans };
+    }),
+  setHeroe: (id, type) => {
+    if (type === "radiant") {
+      set((state) => {
+        const nullIndex = state.radiant.indexOf(null);
+        if (nullIndex === -1) {
+          return {};
+        }
+        const newArray = [...state.radiant];
+        newArray[nullIndex] = id;
+        if (isFullChecker(newArray)) {
+          if (state.side === "Radiant") {
+            return { radiant: newArray, side: null, allSides: null };
+          } else {
+            return { radiant: newArray, side: "Dire", allSides: "Dire" };
+          }
+        }
+        return { radiant: newArray };
+      });
+    } else {
+      set((state) => {
+        const nullIndex = state.dire.indexOf(null);
+        if (nullIndex === -1) {
+          return {};
+        }
+        const newArray = [...state.dire];
+        newArray[nullIndex] = id;
+        if (isFullChecker(newArray)) {
+          if (state.allSides === "Dire") {
+            return { dire: newArray, side: null, allSides: null };
+          } else {
+            return { dire: newArray, side: "Radiant", allSides: "Radiant" };
+          }
+        }
+        return { dire: newArray };
+      });
+    }
+  },
+  deleteHeroe: (id, type) => {
+    if (type === "radiant") {
+      set((state) => {
+        const findIndex = state.radiant.findIndex((item) => item === id);
+        if (findIndex === -1) {
+          return {};
+        }
+        const newArray = [...state.radiant];
+        newArray[findIndex] = null;
+        if (state.allSides === "Dire") {
+          return {
+            radiant: newArray,
+            allSides: [...SIDES],
+            side: "both sides",
+          };
+        } else if (state.allSides === null) {
+          return { radiant: newArray, allSides: "Radiant", side: "Radiant" };
+        }
+        return { radiant: newArray };
+      });
+    } else {
+      set((state) => {
+        const findIndex = state.dire.findIndex((item) => item === id);
+        if (findIndex === -1) {
+          return {};
+        }
+        const newArray = [...state.dire];
+        newArray[findIndex] = null;
+        if (state.allSides === "Radiant") {
+          return { dire: newArray, allSides: [...SIDES], side: "both sides" };
+        } else if (state.allSides === null) {
+          return { dire: newArray, allSides: "Dire", side: "Dire" };
+        }
+        return { dire: newArray };
+      });
+    }
+  },
+}));
+
+
+Корневым компонентом стал кмпонент App. Он отвечает за роутинг, выводя либо главную страницу, либо рекомендацию. Также в нём есть состояние, отвечающее за строку поиска, в зависимости от которой выводятся те герои, который соответствуют поиску.
+
+function App() {
+  const [nameSearch, setNameSearch] = useState("");
+  const handleChangeSearch: ChangeEventHandler<HTMLInputElement> = (event) => {
+    setNameSearch(event.target.value.trim());
+  };
+  const reccomendationPage = useHeroesStore(
+    (state) => state.reccomendationPage
+  );
+
+  return (
+    <>
+      < Header / >
+      {reccomendationPage ? (
+        < Reccomendation />
+      ) : (
+        < div className="w-vw flex items-center flex-col">
+          < div>
+            < div className="my-[12px]">
+              < TextField
+                label="Search by name"
+                variant="standard"
+                onChange={handleChangeSearch}
+                InputProps={{
+                  startAdornment: (
+                    < InputAdornment position="start">
+                      < SearchIcon color="primary" />
+                    < /InputAdornment>
+                  ),
+                }}
+              />
+            < /div>
+            < Heroes search={nameSearch} />
+          < /div>
+        < /div>
+      )}
+    </>
+  );
+}
+
+Рендеринг героев
+
+function Heroes({ search }: { search: string }) {
+  const radiantHeroes = useHeroesStore((state) => state.radiant);
+  const direHeroes = useHeroesStore((state) => state.dire);
+  const banHeroes = useHeroesStore((state) => state.bans);
+
+  const rFull = radiantHeroes.filter((item) => item !== null).length === 5;
+  const dFull = direHeroes.filter((item) => item !== null).length === 5;
+
+  useEffect(() => {
+    localStorage.setItem("dire", JSON.stringify(direHeroes));
+  }, [direHeroes]);
+
+  useEffect(() => {
+    localStorage.setItem("radiant", JSON.stringify(radiantHeroes));
+  }, [radiantHeroes]);
+
+  useEffect(() => {
+    localStorage.setItem("bans", JSON.stringify(banHeroes));
+  }, [banHeroes]);
+
+  return (
+    < div className="w-[1016px] flex justify-center flex-wrap gap-[8px] mb-[10px]">
+      {HEROES.map((item) => (
+        < Heroe
+          heroe={item}
+          chosen={
+            radiantHeroes.includes(item.id) || direHeroes.includes(item.id)
+          }
+          ban={banHeroes.includes(item.id)}
+          disabled={
+            !item.localized_name
+              .toLocaleLowerCase()
+              .includes(search.toLocaleLowerCase())
+          }
+          dFull={dFull}
+          rFull={rFull}
+        />
+      ))}
+    < /div>
+  );
+}
+
+Функция запроса рекомендации
+
+const handleRecommend = async () => {
+    setLoading(true);
+    setReccomendationPage(true);
+    try {
+      const result = await fetch("http://localhost:5000/api/Prediction", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          radiantPicks: radiant
+            .filter((item) => item !== null)
+            .map((item, i) => ({ heroId: item, order: i })),
+          direPicks: dire
+            .filter((item) => item !== null)
+            .map((item, i) => ({ heroId: item, order: i })),
+          bans: bans.map((item) => ({ heroId: item })),
+          recommendedPosition: role,
+        }),
+      });
+
+      const UUID = await result.json();
+      let interval = 1;
+      const req = async () => {
+        const result2 = await fetch(
+          `http://localhost:5000/api/Prediction/?id=${UUID}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const heroes = await result2.json();
+
+        if (heroes.isFinished) {
+          heroes.side = side;
+          setLoading(false);
+          setReccommendedHeroes(heroes);
+          clearInterval(interval);
+        }
+      };
+      interval = setInterval(req, 1000);
+    } catch (err) {
+      setLoading(false);
+      setError(true);
+    }
+};
+
+Страница рекомендации
+
+function Reccomendation() {
+  const [isLoading, isError, heroes] = useHeroesStore((store) => [
+    store.isLoading,
+    store.isError,
+    store.reccomendedHeroes,
+  ]);
+
+  if (isError) {
+    return (
+      < div className="w-full flex items-center mt-[40px] text-[#d32f2f] flex-col gap-[40px]">
+        < div>Server error.< /div>
+      < /div>
+    );
+  }
+
+  return (
+    < div className="flex justify-center mt-[50px] w-full">
+      < div className="w-[1036px] flex justify-center gap-[200px]">
+        {isLoading ? (
+          heroes.side === "both sides" ? (
+            <>
+              < RecItemsSkeleton />
+              < RecItemsSkeleton />
+            </>
+          ) : (
+            < RecItemsSkeleton />
+          )
+        ) : heroes.side === "both sides" ? (
+          <>
+            < RecHeroes
+              side={"Radiant"}
+              heroes={heroes.recommendedRadiantPicks}
+            />
+            < RecHeroes side={"Dire"} heroes={heroes.recommendedDirePicks} />
+          </>
+        ) : (
+          <>
+            < RecHeroes
+              side={heroes.side}
+              heroes={
+                heroes.side === "Dire"
+                  ? heroes.recommendedDirePicks
+                  : heroes.recommendedRadiantPicks
+              }
+            />
+          </>
+        )}
+      < /div>
+    < /div>
+  );
+}
+
+
+
+```
+
+Исследовать код полностью можно в [github](https://github.com/timkorn/easyPickFrontend)
+
+### Ответы на вопросы peer review
+
+**Вопрос:**
+
+Почему React-приложение создавали с Vite, а не Create React App?
+
+*Ответ:*
+
+Create React App является устаревшим решением в области построения интерфейсов. Vite - его более удобная и быстрая альтернатива.
+
+**Вопрос:**
+
+Зачем Вам понадобились картинки высокого качества в UI? Они достаточно маленького размера, кажется, что сжатых маленьких картинок было бы вполне достаточно.
+
+*Ответ:*
+
+Существует две коллекции подходящих картинок героев Dota2. Первая чуть меньше нужного, вторая чуть больше. Маленькие картинки при растягивание теряют в качестве, что не понравится пользователю. Поэтому было решено в начале загрузки вставлять маленькие картинки(т.к. они загружаются быстрее), а потом подгружать большие, чтобы пользователю было приятнее пользоваться системой.
