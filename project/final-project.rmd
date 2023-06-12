@@ -1,10 +1,19 @@
 ---
-title: "Итоговый проект"
-author: "Группа N"
+title: "Easy Pick (Помощник по выбору персонажа в MOBA игре Dota 2)"
+author: "Группа 14"
 output: 
   html_document:
     code_folding: hide
 ---
+
+
+### Идея
+
+**Тип проекта:** рекомендательный
+
+**Данные:** Данные были взяты с официального сайта API доты https://docs.opendota.com/
+
+<Опишите идею вашего проекта -- какая задача решается, какая общая логика проекта (кратко -- что с данными делали, какие модели строили и т.д. -- т.е. краткое содержание последующих разделов), для кого проект, есть ли разные сценарии использования для разных типов пользователей (для новичков и опытных, например), для исследовательских проектов -- какая постановка исследовательской задачи, какая часть результатов вынесена в приложение>
 
 ### Распределение ролей
 
@@ -13,6 +22,548 @@ output:
 3.  Кадыров Ислам Фанилевич - бэкенд
 4.  Болотова Олеся Романовна - интеграция бэка и модели
 5.  Корнилов Тимур Валерьевич - интерфейс
+
+### Предобработка
+
+Мы загрузили два датасета с API доты. Первый с 39к матчей с их исходом, второй с данными по каждому герою доты. Датасет с героями нужен был, чтобы расшифровать имя каждого героя и его айди, а также для рекомендации по ролям (которая была выполенена, но не включена в итоговую версию модели). 
+Поскольку мы вытащили только нужные нам данные, изменять их особо не пришлось, мы убрали несколько лишних переменных и перевели нужные в факторы.
+
+```{r}
+#Загрузка библиотек для работы модели и первичная обработка
+library(readr)
+library(dplyr)
+library(rsample)
+library(recipes)
+library(parsnip)
+library(tune)
+library(dials)
+library(workflows)
+library(yardstick)
+library(tidyr)
+library(tidymodels)
+library(themis)
+library(httr)
+library(jsonlite)
+library(treesnip)
+library(httr)
+library(jsonlite)
+library(stringr)
+
+data <- read_csv("full_claere_data_39000_obs.csv") #датасет с матчами
+heroes <- read_csv("response.csv")  #датасет с героями
+
+data$radiant_pick_1 = as.factor(data$radiant_pick_1)
+data$radiant_pick_2 = as.factor(data$radiant_pick_2)
+data$radiant_pick_3 = as.factor(data$radiant_pick_3)
+data$radiant_pick_4 = as.factor(data$radiant_pick_4)
+data$radiant_pick_5 = as.factor(data$radiant_pick_5)
+data$radiant_win = as.factor(data$radiant_win)
+data$dire_pick_1 = as.factor(data$dire_pick_1)
+data$dire_pick_2 = as.factor(data$dire_pick_2)
+data$dire_pick_3 = as.factor(data$dire_pick_3)
+data$dire_pick_4 = as.factor(data$dire_pick_4)
+data$dire_pick_5 = as.factor(data$dire_pick_5)
+data = data %>% select(-...1)
+
+```
+
+### Методы машинного обучения
+
+Мы протестировали несколько моделей: Catboost (auc 0.682 - один из фаворитов), Random Forest с ядром ranger (auc 0.69 - один из фаворитов), логистическая регрессия (от нее надежд не было от слова совсем, но проверили все равно), дерево решений с кроссвалидацией на C5.0 (сам код дерева к сожалению не сохранился, ее auc был 0,548) и также градиентый бустинг XGBoost (auc 0,57)
+Мы ориентировались на две метрики auc и accuracy. Но поскольку нас интересует принадлежность к категории (0 - поражение, 1 - победа), мы больше ориентировались на auc, потому что он имеет вероятностный смысл, что и нужно для нашего проекта.
+По итогу мы выбрали два претендента на роль нашей модели для проекта: Catboost и Random Forest с ядром ranger. В ходе проверки на адекватность, Catboost (как и ожидалось) показал себя намного лучше в работе с новыми данными. Несмотря на то что у случайного леса были высокие показатели шансов на победу, его рекомендации героев были абсолютно неиграбельными. В то время как Кэтбуст во всех примерах показывал себя отлично и рекомендовал нужных по смыслу героев (даже в профессиональных матчах). Его изначальный выбор для проверки был обусловлен тем, что Catboost из всех градиентых бустингов лучше всего работает с категориальными переменными (а у нас их целых 11!) (мы прочитали нужную литературу и посмотрели сравнения разных видов градиентых бустингов).
+
+### Код модели Catboost
+
+CatBoost тюнинг модели (примерно около 6 часов)
+
+```{r eval = F}
+install.packages('devtools')
+devtools::install_url('https://github.com/catboost/catboost/releases/download/v1.1.1/catboost-R-Windows-1.1.1.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
+#remotes::install_github("curso-r/treesnip@catboost")
+remotes::install_github("Glemhel/treesnip")
+library(treesnip)
+library(catboost)
+library(dplyr)
+
+data_split <- rsample::initial_split(data, prop = 0.8)
+preprocessing_recipe <-
+recipes::recipe(radiant_win ~ ., data = training(data_split)) %>%
+# prep the recipe so it can be used on other data
+prep()
+
+data_cv_folds <-
+recipes::bake(
+preprocessing_recipe,
+new_data = training(data_split)
+) %>%
+rsample::vfold_cv(v = 5)
+
+catboost_model<-
+parsnip::boost_tree(
+mode = "classification",
+trees = 1000,
+min_n = tune(), # n=3
+learn_rate = tune(), #0.02310705
+tree_depth = tune() #5
+) %>%
+set_engine("catboost", loss_function = "Logloss")
+
+CatBoost_params <-
+dials::parameters(
+min_n(), # min data in leaf
+tree_depth(range = c(4,10)), # depth
+# In most cases, the optimal depth ranges from 4 to 10.
+# Values in the range from 6 to 10 are recommended.
+learn_rate() # learning rate
+)
+
+cbst_grid <-
+dials::grid_max_entropy(
+CatBoost_params,
+size = 20)
+
+cbst_wf <-
+workflows::workflow() %>%
+add_model(catboost_model
+) %>%
+add_formula(radiant_win ~ .)
+
+cbst_tuned <- tune::tune_grid(
+object = cbst_wf,
+resamples = data_cv_folds,
+grid = cbst_grid,
+metrics = yardstick::metric_set(accuracy, roc_auc),
+control = tune::control_grid(verbose = TRUE))
+
+show_notes(.Last.tune.result)
+```
+
+```{r eval = F}
+cbst_tuned %>%
+tune::show_best(metric = "roc_auc",n = 5)
+
+cbst_tuned %>%
+tune::show_best(metric = "accuracy",n = 5)
+
+cbst_tuned %>%
+tune::show_best(metric = "roc_auc",n = 5) %>%
+tidyr::pivot_longer(min_n:learn_rate, names_to="variable",values_to="value" ) %>%
+ggplot(aes(value,mean)) +
+geom_line(alpha=1/2)+
+geom_point()+
+facet_wrap(~variable,scales = "free")+
+ggtitle("Best parameters for roc_auc")
+```
+
+```{r eval = F}
+cbst_best_params <-
+cbst_tuned %>%
+tune::select_best("roc_auc")
+
+cbst_model_final <-
+catboost_model%>%
+finalize_model(cbst_best_params)
+```
+
+Здесь подставили нужные параметры и посмотрели метрики
+
+
+```{r eval = F}
+# create train set
+train_processed <- bake(preprocessing_recipe, new_data = training(data_split))
+# fit model on entire trainset
+trained_model_all_data <- cbst_model_final %>%
+# fit the model on all the training data
+fit(
+formula = radiant_win ~ .,
+data = train_processed
+)
+train_prediction <-
+trained_model_all_data %>%
+predict(new_data = train_processed) %>%
+bind_cols(training(data_split))
+```
+
+```{r eval = F}
+test_processed <- bake(preprocessing_recipe, new_data = testing(data_split))
+test_prediction <-
+trained_model_all_data %>%
+# use the training model fit to predict the test data
+predict(new_data = test_processed) %>%
+bind_cols(testing(data_split))
+
+```
+
+```{r eval = F}
+train_prediction %>% yardstick::metrics(radiant_win, .pred_class) %>% mutate(.estimate = format(round(.estimate, 1), big.mark = ","))
+```
+
+```{r eval = F}
+test_prediction %>% yardstick::metrics(radiant_win, .pred_class) %>% mutate(.estimate = format(round(.estimate, 2), big.mark = ",")) %>% knitr::kable()
+
+library(pROC)
+ROCfull = roc(response = dotaTest$radiant_win, predictor = as.numeric(predictions.on.test$.pred_class))
+ROCfull
+```
+
+**Действующий код модели** 
+
+Как оказалось (очень большое удивление) Кэтбуст очень не дружит с R. В ходе работы появился баг (на вход для работы нужна одна категория данных, на выходе другая). Решилась эта проблема с помощью Гитхаба. Пользователь вручную видоизменил код модели (в один момент вручную поменял тип переменных). 
+Также эту проблему подтвердили сами разработчики Кэтбуста и утвердили то решение пользователя.
+
+```{r eval = F}
+install.packages('devtools')
+devtools::install_url('https://github.com/catboost/catboost/releases/download/v1.1.1/catboost-R-Windows-1.1.1.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
+#remotes::install_github("curso-r/treesnip@catboost")
+remotes::install_github("Glemhel/treesnip")
+library(treesnip)
+library(catboost)
+library(dplyr)
+
+data_split <- rsample::initial_split(data, prop = 0.8)
+preprocessing_recipe <-
+recipes::recipe(radiant_win ~ ., data = training(data_split)) %>%
+# prep the recipe so it can be used on other data
+prep()
+
+catboost_model<-
+parsnip::boost_tree(
+mode = "classification",
+trees = 1000,
+min_n = 3, # n=3
+learn_rate = 0.02310705, #0.02310705
+tree_depth = 5 #5
+) %>%
+set_engine("catboost", loss_function = "Logloss")
+
+# create train set
+train_processed <- bake(preprocessing_recipe, new_data = training(data_split))
+# fit model on entire trainset
+trained_model_all_data <- catboost_model %>%
+# fit the model on all the training data
+fit(
+formula = radiant_win ~ .,
+data = train_processed
+)
+
+train_prediction <-
+trained_model_all_data %>%
+predict(new_data = train_processed) %>%
+bind_cols(training(data_split))
+
+test_processed <- bake(preprocessing_recipe, new_data = testing(data_split))
+test_prediction <-
+trained_model_all_data %>%
+# use the training model fit to predict the test data
+predict(new_data = test_processed) %>%
+bind_cols(testing(data_split))
+
+```
+
+Так выглядит первый пример работы нашей модели
+
+```{r eval = F}
+exp = data.frame("radiant_pick_1" = 64, "radiant_pick_2" = 16, "radiant_pick_3" = 81, "radiant_pick_4" = 43, "radiant_pick_5"=NA, "dire_pick_1" = 26, "dire_pick_2" = 123, "dire_pick_3" = 80, "dire_pick_4" = 120, "dire_pick_5"=8)
+exp
+loop = exp
+for (i in 1:(nrow(heroes)-1))
+{
+loop$radiant_pick_5 = heroes$id[i]
+exp = bind_rows(exp, loop)
+
+}
+exp = exp[-1,]
+exp
+exp$radiant_pick_1 = as.factor(exp$radiant_pick_1)
+exp$radiant_pick_2 = as.factor(exp$radiant_pick_2)
+exp$radiant_pick_3 = as.factor(exp$radiant_pick_3)
+exp$radiant_pick_4 = as.factor(exp$radiant_pick_4)
+exp$radiant_pick_5 = as.factor(exp$radiant_pick_5)
+#data$radiant_win = as.factor(data$radiant_win)
+exp$dire_pick_1 = as.factor(exp$dire_pick_1)
+exp$dire_pick_2 = as.factor(exp$dire_pick_2)
+exp$dire_pick_3 = as.factor(exp$dire_pick_3)
+exp$dire_pick_4 = as.factor(exp$dire_pick_4)
+exp$dire_pick_5 = as.factor(exp$dire_pick_5)
+
+new_pred = trained_model_all_data %>%
+# use the training model fit to predict the test data
+predict(new_data = exp, type = "prob") %>% bind_cols(exp)
+view(new_pred)
+colnames(heroes)[1]="radiant_pick_5"
+heroes$radiant_pick_5 = as.factor(heroes$radiant_pick_5)
+recc = new_pred %>% select(.pred_1, radiant_pick_5) %>% arrange(-.pred_1) %>% print()
+recc = left_join(heroes, recc, by = "radiant_pick_5")
+recomendation = recc %>% select(.pred_1, radiant_pick_5, localized_name) %>% arrange(-.pred_1) %>% print()
+
+```
+
+Второй пример расширенный (на основе которого дальше строилось приложение)
+```{r eval = F}
+exp = data.frame("radiant_pick_1" = 86, "radiant_pick_2" = 38, "radiant_pick_3" = 103, "radiant_pick_4" = 109, "radiant_pick_5"=NA, "dire_pick_1" = 53, "dire_pick_2" = 64, "dire_pick_3" = 101, "dire_pick_4" = 77, "dire_pick_5"=19)
+
+selected = data.frame("radiant_pick_1" = 86, "radiant_pick_2" = 38, "radiant_pick_3" = 103, "radiant_pick_4" = 109, "radiant_pick_5"=NA, "dire_pick_1" = 53, "dire_pick_2" = 64, "dire_pick_3" = 101, "dire_pick_4" = 77, "dire_pick_5"=19)
+
+banned = data.frame('radiant_ban_1' = 1, 'radiant_ban_2' = 2, 'radiant_ban_3' = 3, 'radiant_ban_4' = 4, 'radiant_ban_5' = 5, 'dire_ban_1' = 9, 'dire_ban_2' = 10, 'dire_ban_3' = 11, 'dire_ban_4' = 12, 'dire_ban_5' = 13)
+
+excluded = as.factor(c(as.numeric(as.vector(banned[1,])), as.numeric(as.vector(selected[1,]))))
+colnames(heroes)[1]="radiant_pick_5"
+loop = exp
+for (i in 1:(nrow(heroes)-1))
+{
+if (!(heroes$radiant_pick_5[i] %in% excluded))
+{
+loop$radiant_pick_5 = heroes$radiant_pick_5[i]
+exp = bind_rows(exp, loop)
+}
+}
+exp = exp[-1,]
+exp$radiant_pick_1 = as.factor(exp$radiant_pick_1)
+exp$radiant_pick_2 = as.factor(exp$radiant_pick_2)
+exp$radiant_pick_3 = as.factor(exp$radiant_pick_3)
+exp$radiant_pick_4 = as.factor(exp$radiant_pick_4)
+exp$radiant_pick_5 = as.factor(exp$radiant_pick_5)
+#data$radiant_win = as.factor(data$radiant_win)
+exp$dire_pick_1 = as.factor(exp$dire_pick_1)
+exp$dire_pick_2 = as.factor(exp$dire_pick_2)
+exp$dire_pick_3 = as.factor(exp$dire_pick_3)
+exp$dire_pick_4 = as.factor(exp$dire_pick_4)
+exp$dire_pick_5 = as.factor(exp$dire_pick_5)
+#Вектор исключенных рекомендаций
+
+new_pred = trained_model_all_data %>%
+# use the training model fit to predict the test data
+predict(new_data = exp, type = "prob") %>% bind_cols(exp) %>% arrange(-.pred_1)
+heroes$radiant_pick_5 = as.factor(heroes$radiant_pick_5)
+recc = new_pred %>% select(.pred_1, radiant_pick_5) %>% arrange(-.pred_1)
+table_heroes = left_join(heroes, recc, by = "radiant_pick_5")
+recomendation = table_heroes %>% select(.pred_1, radiant_pick_5, localized_name, `roles/0`, `roles/1`, attack_type, `roles/2`) %>% arrange(-.pred_1)
+
+user_input_role = "Carry"
+if(user_input_role == "Carry"){
+recomendation = recomendation %>% filter(`roles/0`=="Carry"|`roles/0`== "Nuker"|`roles/1`=="Nuker"| `roles/1`== "Carry"|`roles/2`=="Carry"| `roles/0`=="Initiator"|`roles/1`=="Initiator") %>% select(.pred_1, localized_name) %>% print()
+} else{if(user_input_role == "Support"){
+recomendation = recomendation %>% filter(`roles/0`=="Support"|`roles/0`== "Initiator"|`roles/1`=="Initiator"| `roles/1`== "Support"|`roles/2`=="Support"| `roles/0`=="Disabler"|`roles/1`=="Disabler") %>% select(.pred_1, localized_name) %>% print()
+} else {
+recomendation = recomendation %>% select(.pred_1, localized_name) %>% print()
+}}
+
+user_input_side = "radiant" #либо dire
+if(user_input_side == "radiant"){
+recomendation %>% select(.pred_1, localized_name) %>% print()
+} else {
+recomendation %>% select(.pred_0, localized_name) %>% print()
+}
+
+```
+
+### Архитектура и код приложения
+
+Здесь должно быть объяснение работы приложения  <Опишите логику построения вашего приложения: как вы используете данные (исходные и предобработка производится в приложении / уже предобработанные), как вы используете модель (результаты уже включены в используемый датасет / модель строится в приложении / используется построенная ранее модель, а в приложение она загружается файлом), сохраняете ли вы данные из приложения и если да, то куда.>
+
+```{r eval = F}
+function_name <- function(myData){
+
+#myData <- tmpRes
+
+selected = data.frame("radiant_pick_1" = myData[["RadiantPicks"]][["HeroId"]][1], 
+                      "radiant_pick_2" = myData[["RadiantPicks"]][["HeroId"]][2], 
+                      "radiant_pick_3" = myData[["RadiantPicks"]][["HeroId"]][3], 
+                      "radiant_pick_4" = myData[["RadiantPicks"]][["HeroId"]][4],
+                      "radiant_pick_5"=myData[["RadiantPicks"]][["HeroId"]][5], 
+                      "dire_pick_1" = myData[["DirePicks"]][["HeroId"]][1], 
+                      "dire_pick_2" = myData[["DirePicks"]][["HeroId"]][2],
+                      "dire_pick_3" = myData[["DirePicks"]][["HeroId"]][3], 
+                      "dire_pick_4" = myData[["DirePicks"]][["HeroId"]][4], 
+                      "dire_pick_5"=myData[["DirePicks"]][["HeroId"]][5])
+
+banned = data.frame('radiant_ban_1' = myData[["Bans"]][["HeroId"]][1], 
+                    'radiant_ban_2' = myData[["Bans"]][["HeroId"]][2], 
+                    'radiant_ban_3' = myData[["Bans"]][["HeroId"]][3], 
+                    'radiant_ban_4' = myData[["Bans"]][["HeroId"]][4], 
+                    'radiant_ban_5' = myData[["Bans"]][["HeroId"]][5], 
+                    'dire_ban_1' = myData[["Bans"]][["HeroId"]][6], 
+                    'dire_ban_2' = myData[["Bans"]][["HeroId"]][7], 
+                    'dire_ban_3' = myData[["Bans"]][["HeroId"]][8], 
+                    'dire_ban_4' = myData[["Bans"]][["HeroId"]][9], 
+                    'dire_ban_5' = myData[["Bans"]][["HeroId"]][10])
+
+user_input_side = ifelse(length(myData[["RadiantPicks"]][["HeroId"]])==5,'dire',
+       ifelse(length(myData[["DirePicks"]][["HeroId"]])==5,'radiant',
+              'both')
+       )
+
+user_input_role = ifelse(myData[["RecommendedPosition"]] =='Midlaner'|
+                          myData[["RecommendedPosition"]] =='Offlaner'|
+                          myData[["RecommendedPosition"]] =='Carry', 'Carry', 'Support')
+
+exp = selected
+
+excluded = as.factor(c(as.numeric(as.vector(banned[1,])), as.numeric(as.vector(selected[1,]))))
+
+heroes_radiant_5 = heroes
+colnames(heroes_radiant_5)[1]="radiant_pick_5" #Здесь чтобы сделать лефт_джоин переимонал вместо айди в датасете heroes переименовал в номер пика который нужен
+
+loop = exp
+
+#Вектор исключенных рекомендаций
+for (i in 1:(nrow(heroes_radiant_5)-1))
+{
+if (!(heroes_radiant_5$radiant_pick_5[i] %in% excluded))
+{
+loop$radiant_pick_5 = heroes_radiant_5$radiant_pick_5[i] ##вместо radiant_pick_5 может быть другая позиция, которую выберет игрок
+exp = bind_rows(exp, loop)
+}
+}
+#Здесь создался датасет в котором подобран каждый герой для уже текущих персонажей
+exp = exp[-1,]
+exp$radiant_pick_1 = as.factor(exp$radiant_pick_1)
+exp$radiant_pick_2 = as.factor(exp$radiant_pick_2)
+exp$radiant_pick_3 = as.factor(exp$radiant_pick_3)
+exp$radiant_pick_4 = as.factor(exp$radiant_pick_4)
+exp$radiant_pick_5 = as.factor(exp$radiant_pick_5)
+exp$dire_pick_1 = as.factor(exp$dire_pick_1)
+exp$dire_pick_2 = as.factor(exp$dire_pick_2)
+exp$dire_pick_3 = as.factor(exp$dire_pick_3)
+exp$dire_pick_4 = as.factor(exp$dire_pick_4)
+exp$dire_pick_5 = as.factor(exp$dire_pick_5)
+
+heroes_radiant_5$radiant_pick_5 = as.factor(heroes_radiant_5$radiant_pick_5)
+
+new_pred = trained_model_all_data %>%
+# use the training model fit to predict the test data
+predict(new_data = exp, type = "prob") %>% bind_cols(exp)
+
+recc = new_pred %>% select(.pred_1, radiant_pick_5)
+
+table_heroes = left_join(heroes_radiant_5, recc, by = "radiant_pick_5") 
+recomendation_radiant = table_heroes %>% select(.pred_1, radiant_pick_5, localized_name, `roles/0`, `roles/1`, `roles/2`) #вместо radiant_pick_5 может быть другая позиция, которую выберет игрок
+
+#user_input_role = "Carry" #должен быть супорт/керри или пусто ""
+
+if(user_input_role == "carry"){
+  recomendation_radiant = recomendation_radiant %>% filter(`roles/0`=="Carry"|`roles/0`== "Nuker"|`roles/1`=="Nuker"| `roles/1`== "Carry"|`roles/2`=="Carry"| `roles/0`=="Initiator"|`roles/1`=="Initiator") %>%  select(.pred_1, localized_name, radiant_pick_5) %>% arrange(-.pred_1) %>% head(10)
+} else{if(user_input_role == "Support"){
+  recomendation_radiant = recomendation_radiant %>% filter(`roles/0`=="Support"|`roles/0`== "Initiator"|`roles/1`=="Initiator"| `roles/1`== "Support"|`roles/2`=="Support"| `roles/0`=="Disabler"|`roles/1`=="Disabler") %>% select(.pred_1, localized_name, radiant_pick_5) %>% arrange(-.pred_1)%>% head(10)
+} else {
+  recomendation_radiant = recomendation_radiant %>% select(.pred_1, localized_name, radiant_pick_5) %>% arrange(-.pred_1)%>% head(10)
+}}
+
+exp_dire = selected
+heroes_dire = heroes
+colnames(heroes_dire)[1]="dire_pick_5" #Здесь чтобы сделать лефт_джоин переимонал вместо айди в датасете heroes переименовал в номер пика который нужен
+
+loop_dire = exp_dire
+
+#Вектор исключенных рекомендаций
+for (i in 1:(nrow(heroes_dire)-1))
+{
+if (!(heroes_dire$dire_pick_5[i] %in% excluded))
+{
+loop_dire$dire_pick_5 = heroes_dire$dire_pick_5[i] ##вместо radiant_pick_5 может быть другая позиция, которую выберет игрок
+exp_dire = bind_rows(exp_dire, loop_dire)
+}}
+#Здесь создался датасет в котором подобран каждый герой для уже текущих персонажей
+exp_dire = exp_dire[-1,]
+exp_dire$radiant_pick_1 = as.factor(exp_dire$radiant_pick_1)
+exp_dire$radiant_pick_2 = as.factor(exp_dire$radiant_pick_2)
+exp_dire$radiant_pick_3 = as.factor(exp_dire$radiant_pick_3)
+exp_dire$radiant_pick_4 = as.factor(exp_dire$radiant_pick_4)
+exp_dire$radiant_pick_5 = as.factor(exp_dire$radiant_pick_5)
+exp_dire$dire_pick_1 = as.factor(exp_dire$dire_pick_1)
+exp_dire$dire_pick_2 = as.factor(exp_dire$dire_pick_2)
+exp_dire$dire_pick_3 = as.factor(exp_dire$dire_pick_3)
+exp_dire$dire_pick_4 = as.factor(exp_dire$dire_pick_4)
+exp_dire$dire_pick_5 = as.factor(exp_dire$dire_pick_5)
+
+heroes_dire$dire_pick_5 = as.factor(heroes_dire$dire_pick_5)
+
+new_pred_dire = trained_model_all_data %>%
+# use the training model fit to predict the test data
+predict(new_data = exp_dire, type = "prob") %>% bind_cols(exp_dire)
+
+recc_dire = new_pred_dire %>% select(.pred_0, dire_pick_5)
+
+table_heroes_dire = left_join(heroes_dire, recc_dire, by = "dire_pick_5") 
+recomendation_dire = table_heroes_dire %>% select(.pred_0, dire_pick_5, localized_name, `roles/0`, `roles/1`, `roles/2`) #вместо radiant_pick_5 может быть другая позиция, которую выберет игрок
+
+user_input_role_dire = user_input_role #должен быть супорт/керри или пусто ""
+
+if(user_input_role_dire == "Carry"){
+  recomendation_dire = recomendation_dire %>% filter(`roles/0`=="Carry"|`roles/0`== "Nuker"|`roles/1`=="Nuker"| `roles/1`== "Carry"|`roles/2`=="Carry"| `roles/0`=="Initiator"|`roles/1`=="Initiator") %>%  select(.pred_0, localized_name, dire_pick_5) %>% arrange(-.pred_0) %>% head(10)
+} else{if(user_input_role_dire == "Support"){
+  recomendation_dire = recomendation_dire %>% filter(`roles/0`=="Support"|`roles/0`== "Initiator"|`roles/1`=="Initiator"| `roles/1`== "Support"|`roles/2`=="Support"| `roles/0`=="Disabler"|`roles/1`=="Disabler") %>% select(.pred_0, localized_name, dire_pick_5) %>% arrange(-.pred_0)%>% head(10)
+} else {
+  recomendation_dire = recomendation_dire %>% select(.pred_0, localized_name, dire_pick_5) %>% arrange(-.pred_0)%>% head(10)
+}}
+
+if(user_input_side == "both"){
+  recomendation = bind_cols(recomendation_radiant, recomendation_dire)
+} else { if(user_input_side == "radiant"){
+  recomendation = recomendation_radiant 
+}else{
+  recomendation = recomendation_dire 
+}
+}
+
+dire_reccomendation = select(recomendation, -'localized_name...2',-'localized_name...5', -'.pred_1',- radiant_pick_5) %>%
+  rename('WinProbability'= '.pred_0' ,'HeroId' =  'dire_pick_5' )
+radiant_reccomendation = select(recomendation, -'localized_name...2', -'localized_name...5', -'.pred_0',- dire_pick_5) %>%rename('WinProbability'= '.pred_1' ,'HeroId' =  'radiant_pick_5')
+dire_reccomendation$HeroId = as.numeric(dire_reccomendation$HeroId)
+radiant_reccomendation$HeroId = as.numeric(radiant_reccomendation$HeroId)
+
+basa = data.frame(RequestId  = character(),                 # Create data frame
+                    RecommendedRadiantPicks  = character(),
+                    RecommendedDirePicks = character())
+basa[nrow(basa) + 1,] <- list(myData$RequestId, toJSON(radiant_reccomendation), toJSON(dire_reccomendation))
+
+
+
+a = gsub('^.|.$', '', toJSON(basa))
+a = gsub("\"RecommendedRadiantPicks\":\"",
+"\"RecommendedRadiantPicks\":",a)
+
+a = gsub("\",\"RecommendedDirePicks\"", ",\"RecommendedDirePicks\"",a)
+
+a = gsub("\"RecommendedDirePicks\":\"",
+"\"RecommendedDirePicks\":",a)
+a = gsub("\",\"RecommendedDirePicks\"", ",\"RecommendedDirePicks\"",a)
+a = gsub("]\"}", "]}", a)
+a = str_remove_all(a, "\\\\")
+print(a)
+r <- POST("http://localhost:8000/api/QueueRedirect", content_type_json(), body = a)
+
+stop_for_status(r)
+
+content(r, type="application/json")
+}
+```
+
+
+```{r eval = F}
+while (TRUE){
+require(httr)
+url <- paste0("http://localhost:8000/api/QueueRedirect")
+
+result <- content(GET(url), as = 'parsed', type = "application/json")
+for(x in result) {
+	tmpRadiantPicks = list()
+	for(y in x$radiantPicks){
+	  tmpRadiantPicks = tmpRadiantPicks <- append(tmpRadiantPicks, y$heroId)
+	}
+	tmpDirePicks = list()
+	for(y in x$direPicks){
+	  tmpDirePicks = tmpDirePicks <- append(tmpDirePicks, y$heroId)
+	}
+	tmpBans = list()
+	for(y in x$bans){
+	  tmpBans = tmpBansPicks <- append(tmpBans, y$heroId)
+	}
+tmpRes = list(RequestId = x$requestId, RecommendedPosition = x$recommendedPosition, RadiantPicks = data.frame(HeroId = as.integer(tmpRadiantPicks)), DirePicks = data.frame(HeroId = as.integer(tmpDirePicks)),  Bans = data.frame(HeroId = as.integer(tmpBans)))
+function_name(tmpRes)
+}}
+```
 
 ### Интерфейс
 
@@ -31,7 +582,7 @@ output:
 
 ```{js eval = FALSE}
 
-Для храннения и изменения данных был использован глобальный стор Zutand. 
+Для хранения и изменения данных был использован глобальный стор Zutand. 
 
 export const useHeroesStore = create<THeroes>((set) => ({
   reccomendedHeroes: { recommendedDirePicks: [], recommendedRadiantPicks: [], side: "both sides" },
@@ -384,3 +935,138 @@ Create React App является устаревшим решением в об�
 *Ответ:*
 
 Существует две коллекции подходящих картинок героев Dota2. Первая чуть меньше нужного, вторая чуть больше. Маленькие картинки при растягивание теряют в качестве, что не понравится пользователю. Поэтому было решено в начале загрузки вставлять маленькие картинки(т.к. они загружаются быстрее), а потом подгружать большие, чтобы пользователю было приятнее пользоваться системой.
+
+**Вопрос:**
+
+Откуда были получены данные для проекта? Почему Вы решили использовать очередь (RabbitMQ)? Не overkill ли это? Подозреваю, что HTTP-сервисы (API) у Вас написаны на Python (могу и ошибаться). Не легче бы тогда было и работать с данными в Python и не использовать R?
+
+*Ответ:*
+
+Данные были получены с opendota api, парсер делали сами. Очередь использовали как ESB в случае если захотим расширять проект. API написаны на ASPNET Core, но в целом работа на питоне была бы куда удобнее(как минимум есть рабочие библиотеки для работы с очередью) и мы планировали этим заняться в дальнейшем.
+
+**Вопрос:**
+
+"Есть ли вкладка ""о приложении""? ее не видно на демонстрации экрана. она была бы полезна, чтобы пользователю было понятнее, что это все и для чего. также стоило бы прописать, что для получения рекомендации сначала нужно выбрать по 4 игрока для каждой команды — и после этого запрашивать рекомендацию для обеих или одной из групп. Также, возможно, было бы здорово, если бы рекомендации можно было запрашивать, когда в командах выбрано по 3 героя." 
+
+*Ответ:*
+
+Вкладки "о приложении" у нас нет, однако в самой презентации мы рассказали про цели и описали нашу работу. Так как это приложение рассчитано для узкого круга людей - игроков в Dota 2, мы предполагали, что пользователи понимают, что это за приложение и в чем его суть. Возможно, нам действительно стоило прописать где-то, что нужно выбрать по 4 игрока для каждой из групп. Однако в самом видео мы сказали, как работает приложение. Также планируется работа с приложением и дальше для расширения его возможностей, это является еще одной причиной, почему в самом интерфейсе нет дополнительных вкладок.
+
+**Вопрос:**
+
+"Новичку (или вообще такому человеку, как мне) не сразу понятно, как именно пользоваться приложением, поэтому я бы хотела увидеть какую-нибудь инструкцию для пользования"
+
+*Ответ:*
+
+Предполагалось, что пользователями будут игроки Dota 2, то есть они хотя бы раз запускали саму игру и имеют о ней представление, поэтому приложение будет для них понятным.
+
+**Вопрос:**
+
+"Система рекомендует героев только тогда, когда у обоих сторон уже выбрано по 4 героя, и не делает рекомендацию, когда у одной команды выбрано 5 героев, а у другой 4, и с меньшим числом героев"
+
+*Ответ:*
+
+Так как создание самого приложения оказалось очень трудоемким и сложным процессом, для упрощения задачи мы решили остановиться на таком варианте. Это ограничение было сделано для того, чтобы точно успеть к поставленным дедлайнам.
+
+**Вопрос:**
+
+"Персонажи меняются (усиляются или ослабляются) с каждым обновлением (примерно, раз в пол года). И как данное приложение будут учитывать так называемую мету персонажей и изменение в балансе?"
+
+*Ответ:*
+
+Поскольку наша модель обучается на уже сыгранных матчах, то после каждого обновления она будет уже учиться на новой мете героев (в нашем случае мы самостоятельно загружали данные через API, но это можно автоматизировать и обновлять матчи с какой-то частотой, чтобы быть в тренде)
+
+**Вопрос:**
+
+"Опирается ли система только на результаты матчей? Есть ли уточнение по опыту игроков, ведь использование героя может отличаться? Учет изменения баланса персонажей? Кажется, что 39000 наблюдений для всех комбинаций героев маловато"
+
+*Ответ:*
+
+Да, наша модель опирается только на исход матча. Мы планировали сделать разбиение по рейтингу игроков, но написать модель даже без разбора уровня игры оказалось сложнее чем мы думали и мы отпустили эту идею на потом. Действительно 39к матчей покажется маловато, но даже с таким количеством наблюдений мощности уже не хватало. Например, чтобы подобрать параметры для одной из моделей могло потребоваться 6 часов усердной работы несчастного ноутбука (его было очень жаль)!
+
+**Вопрос:**
+
+"Потенциально можно добавить учёт роли, на которую выбирается персонаж, если ролевой поиск"
+
+*Ответ:*
+
+-Да, в коде нашей модели уже есть эта опция, но в итоговую версию самого приложения, эта функция не дожила и не была добавлена (пока что!)
+
+**Вопрос:**
+
+"А будут ли анализироваться прошлые игры на герое у пользователя и его статистика? На мой взгляд, это будет более объективная характеристика по сравнению с рейтингом (рейтинг - это не показатель! может, игрок просто в скрытом пуле или играет на фейке) А также игрок может просто не играть рейтинговые матчи"
+
+*Ответ:*
+
+- Скрытый пул это конечно ужасно! Но наша модель предлагает опираясь для сухих лайн-апов без учета опыта пользователя, ее можно использовать не только для рейтинговых игр, но и для пабликов и турбо
+
+### Ответы на примеры из peer review
+
+**Пример:**
+
+Пусть на radiant будут Abaddon, Invoker, Magnus, Ursa, а на dire - Pudge, Anti-Mage, Huskar, Tinker
+
+*Ответ:*
+
+-первый скрин
+
+**Пример:**
+
+Я не спец, но выбрала этот проект, потому что видела, как играет мой друг. Каких героев порекомендует система, если в первую команду мы выберем 2 героев поддержки (Treant Protector, Hoodwink) и двух героев контроля (Viper, Ancient Apparation), а в другую мы выберем трех керри (Alchemist, Templar Assassin, Invoker) и одного отвечающего за осаду (Tiny).
+
+*Ответ:*
+
+-второй скрин
+
+**Пример:**
+
+если в моей команде будут: Huskar, Omniknight, Dark Seer, Oracle; а в другой: Lycan, Warlock, Riki, Sven, какого персонажа я получу в качестве рекомендации для своей команды?
+
+*Ответ:*
+
+-третий скрин
+
+**Пример:**
+
+Что если моя команда выбрала четырех персонажей класса саппорт? Кого порекомендует приложение и каковы будут шансы на победу? / "Не очень разбираюсь в доте, поэтому пример достаточно абстрактный.
+Хотелось бы посмотреть, что будет если в 1 команду закинуть 4 самых бесполезных персонажа, а в другую 4 самых сильных (если среди персонажей вообще можно выбрать самых слабых и сильных, конечно). Интересно кого порекомендует система, а также какую вероятность победы выдаст"
+
+*Ответ:*
+
+- По скольку конкретных героев не было указано для обеих команд, мы смоделируем ситуацию сами:
+В команде рэдиант будут: Crystal Maiden, Hoodwink, Lich и Lyon
+В команде даер все будет адекватно: Ogre Magi, Juggernaut, Mirana, Axe
+Как и ожидалось, система должна предложить сильного хард керри для команды с одними сапортами, чтобы были хоть какие-то шансы на победу, и также для даер герои, которые легко могут убивать слабых геров и очень высокие шансы на победу при почти любом раскладе
+
+- четвертый скрин
+
+**Пример:**
+
+К примеру, в одной команде мой пик будет Пудж, Снайпер, Вайпер и Nature Prophet, а в другой команде Sniper, Shadow Fiend, Terrorblade и Crystal Maiden.
+
+*Ответ:*
+
+- К сожалению, один и тот же герой не может присутствовать в двух командах одновременно, поэтому наша модель не даст выбрать одного героя два раза
+
+**Пример:**
+
+Я бы взял пару своих игр с известным результатом и попробовал сравнить наш ластпик с тем, который предлагает система. Дополнительно я бы попробовал проверить модель на каком-нибудь из профессиональных матчей (тоже с известным результатом) , которые идут прямо сейчас. Например, четыре первых пика стороны Света: Doom, Storm Spirit, Pugna, Snapfire, стороны Тьмы: Beastmaster, Keeper of the Light, Void Spirit, Silencer.
+
+*Ответ:*
+
+-В ходе нашей проверки на адекватность, для обычных и профессиональных игр, в топ 10 героев система предлагала одного из тех, что был в реальности выбран людьми, но в некоторых профессиональных играх, система предлагала героев более строго (я бы сказал классически) и не попадала в реальность, потому что на профессиональной сцене очень часто игроки принимают неординарные решения (то что не используется на обычном уровне доты).
+Для предложенного примера вот результат:
+- пятый скрин
+
+**Пример:**
+
+Я хотел бы протестировать сценарий, в котором команда уже выбрала четырех персонажей, а я - последний игрок, который выбирает, моя команда - Puck Rubick Pudge, stormbreaker, команда противников Phantom lancer, tiny, tusk, enigma, duzzle
+
+*Ответ:*
+
+- Поскольку у нас система для 4-4 мы не укажем dazzle у даер
+- шестой скрин
+
+
+
+
